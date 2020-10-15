@@ -5,6 +5,7 @@ module.exports = {
     author: `@gatsbyjs`,
   },
   plugins: [
+    `gatsby-plugin-postcss`,
     `gatsby-plugin-react-helmet`,
     {
       resolve: `gatsby-source-filesystem`,
@@ -30,5 +31,22 @@ module.exports = {
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,
+    {
+      resolve: "gatsby-plugin-load-script",
+      options: {
+        disable: !process.env.SENTRY_DSN, // When do you want to disable it ?
+        src: "https://browser.sentry-cdn.com/5.15.4/bundle.min.js",
+        integrity:
+          "sha384-Nrg+xiw+qRl3grVrxJtWazjeZmUwoSt0FAVsbthlJ5OMpx0G08bqIq3b/v0hPjhB",
+        crossorigin: "anonymous",
+        onLoad: `() => Sentry.init({dsn:"${process.env.SENTRY_DSN}"})`,
+      },
+    },
+    {
+      resolve: "gatsby-plugin-load-script",
+      options: {
+        src: "https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js", // Change to the script filename
+      },
+    },
   ],
 }
