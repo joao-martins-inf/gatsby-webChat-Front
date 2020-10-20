@@ -1,10 +1,11 @@
 import Peer from "peerjs"
-import React, { useRef, useEffect } from "react"
+import React, { useRef, useEffect, useState } from "react"
 import io from "socket.io-client"
 import Layout from "../components/layout"
 
 import Video from "../components/video"
 import WebChatBtn from "../components/webChatBtn"
+import Chat from "../components/chat"
 
 const RoomID = 10
 
@@ -42,6 +43,9 @@ const Room = props => {
   const userStream = useRef()
   const peersRef = useRef({})
   //const muteBtn = useRef()
+
+  const [chatVisibility, setChatVisibility] = useState(true)
+  const [msgs, setMsgs] = useState([])
 
   useEffect(() => {
     navigator.mediaDevices
@@ -96,7 +100,8 @@ const Room = props => {
 
         //receives chat msgs
         socketRef.current.on("message", data => {
-          appendMsg(`${data.userId}: ${data.message}`)
+          //appendMsg(`${data.userId}: ${data.message}`)
+          setMsgs(prev => prev.concat(data.userId + ": " + data.message))
         })
       })
   }, [])
@@ -152,14 +157,15 @@ const Room = props => {
   }
 
   function handleMsgBtnClick() {
-    const chat = document.getElementById("chat")
+    /* const chat = document.getElementById("chat")
     if (chat.classList.contains("hidden")) {
       chat.classList.remove("hidden")
       chat.classList.add("md:block")
     } else {
       chat.classList.add("hidden")
       chat.classList.remove("md:block")
-    }
+    } */
+    setChatVisibility(prev => !prev)
   }
 
   function handleEndCallBtnclick() {
@@ -170,17 +176,19 @@ const Room = props => {
     const msgInput = document.getElementById("msg-input")
     event.preventDefault()
     const message = msgInput.value
-    appendMsg(`You: ${message}`)
+    //appendMsg(`You: ${message}`)
+    setMsgs(prev => prev.concat("You :" + message))
+    //setMsgs(prev => prev.push("You :" + message))
     socketRef.current.emit("chat", message)
     msgInput.value = ""
   }
-
+  /* 
   function appendMsg(message) {
     const msgContainer = document.getElementById("msg-container")
     const msgElem = document.createElement("div")
     msgElem.innerText = message
     msgContainer.append(msgElem)
-  }
+  } */
 
   return (
     <div className="flex">
@@ -213,37 +221,12 @@ const Room = props => {
           </div>
         </div>
       </div>
-      <div
-        className="bg-white w-full h-full absolute z-20 hidden md:static md:w-auto"
-        id="chat"
-      >
-        <button onClick={handleMsgBtnClick}>
-          <svg
-            class="w-4 m-3"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-          >
-            <path d="M10 8.586L2.929 1.515 1.515 2.929 8.586 10l-7.071 7.071 1.414 1.414L10 11.414l7.071 7.071 1.414-1.414L11.414 10l7.071-7.071-1.414-1.414L10 8.586z" />
-          </svg>
-        </button>
-        <div className="m-4 flex-row top-0 bottom-0 h-full">
-          <div id="msg-container"></div>
-
-          <form onSubmit={handleSubmit} className="flex bottom-0">
-            <input
-              id="msg-input"
-              type="text"
-              className="w-full px-4 py-2 leading-tight bg-gray-500 opacity-50 m-2"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded m-2"
-            >
-              Send
-            </button>
-          </form>
-        </div>
-      </div>
+      <Chat
+        hide={chatVisibility}
+        closeClick={handleMsgBtnClick}
+        msgs={msgs}
+        submitClick={handleSubmit}
+      />
     </div>
   )
 }
